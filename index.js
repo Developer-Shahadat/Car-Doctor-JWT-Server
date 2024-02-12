@@ -40,7 +40,7 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const options = {
-        projection: { title: 1, price: 1, service_id: 1 },
+        projection: { title: 1, price: 1, service_id: 1 , img: 1 },
       };
       const result = await servicesCollection.findOne(query, options);
       res.send(result);
@@ -51,7 +51,17 @@ async function run() {
       const order = req.body;
       console.log(order);
       const result = await orderCollection.insertOne(order);
-      res.send(result)
+      res.send(result);
+    });
+
+    app.get("/orders", async (req, res) => {
+      console.log(req.query.email);
+      let query = {};
+      if (req.query.email) {
+        query = { email: req.query.email };
+      }
+      const result = await orderCollection.find(query).toArray();
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
