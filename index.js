@@ -12,7 +12,7 @@ const port = process.env.PORT || 5000;
 //
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173" , "http://localhost:5174"],
     credentials: true,
   })
 );
@@ -36,23 +36,22 @@ const logger = async (req, res, next) => {
   next();
 };
 
-const verifyToken = async(req,res,next) => {
+const verifyToken = async (req, res, next) => {
   const token = req.cookies?.token;
-  console.log('value of token in middleware' , token);
-  if(!token){
-    return res.status(401).send({message: 'not authorized'})
+  console.log("value of token in middleware", token);
+  if (!token) {
+    return res.status(401).send({ message: "not authorized" });
   }
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,(err,decoded) => {
-    if(err){
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
       console.log(err);
-      return res.status(401).send({message: 'unauthorized'})
+      return res.status(401).send({ message: "unauthorized" });
     }
-    console.log('value in the token' , decoded);
+    console.log("value in the token", decoded);
     req.user = decoded;
     next();
-  })
- 
-}
+  });
+};
 
 async function run() {
   try {
@@ -103,10 +102,13 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/orders",  logger, verifyToken, async (req, res) => {
+    app.get("/orders", logger, verifyToken, async (req, res) => {
       console.log(req.query.email);
       // console.log("token", req.cookies.token);
-      console.log('user in the valid token', req.user);
+      console.log("user in the valid token", req.user);
+      if (req.query.email !== req.user.email) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
       let query = {};
       if (req.query.email) {
         query = { email: req.query.email };
